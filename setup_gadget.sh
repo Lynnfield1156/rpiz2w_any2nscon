@@ -11,27 +11,27 @@ cd $CONFIGFS_HOME
 if [ -d "$GADGET_NAME" ]; then
     echo "Gadget $GADGET_NAME already exists. Removing..."
     # Disable gadget
-    echo "" > $GADGET_NAME/UDC
+    echo "" > $GADGET_NAME/UDC || true
     # Remove configs
-    rm $GADGET_NAME/configs/c.1/hid.usb0
-    rmdir $GADGET_NAME/configs/c.1/strings/0x409
-    rmdir $GADGET_NAME/configs/c.1
+    rm $GADGET_NAME/configs/c.1/hid.usb0 || true
+    rmdir $GADGET_NAME/configs/c.1/strings/0x409 || true
+    rmdir $GADGET_NAME/configs/c.1 || true
     # Remove functions
-    rmdir $GADGET_NAME/functions/hid.usb0
+    rmdir $GADGET_NAME/functions/hid.usb0 || true
     # Remove strings
-    rmdir $GADGET_NAME/strings/0x409
+    rmdir $GADGET_NAME/strings/0x409 || true
     # Remove gadget
-    rmdir $GADGET_NAME
+    rmdir $GADGET_NAME || true
 fi
 
 echo "Creating gadget $GADGET_NAME..."
 mkdir $GADGET_NAME
 cd $GADGET_NAME
 
-# ID setup (HORIPAD S -> Pokken)
-echo 0x0f0d > idVendor
-echo 0x0092 > idProduct
-echo 0x0200 > bcdDevice
+# ID setup (Pro Controller)
+echo 0x057e > idVendor
+echo 0x2009 > idProduct
+echo 0x0100 > bcdDevice
 echo 0x0200 > bcdUSB
 echo 0x00 > bDeviceClass
 echo 0x00 > bDeviceSubClass
@@ -41,35 +41,41 @@ echo 0x00 > bDeviceProtocol
 mkdir -p strings/0x409
 echo "000000000001" > strings/0x409/serialnumber
 echo "HORI CO.,LTD." > strings/0x409/manufacturer
-echo "HORIPAD S" > strings/0x409/product
+echo "POKKEN CONTROLLER" > strings/0x409/product
 
 # Configuration
 mkdir -p configs/c.1/strings/0x409
-echo "HORIPAD S" > configs/c.1/strings/0x409/configuration
+echo "POKKEN CONTROLLER" > configs/c.1/strings/0x409/configuration
 echo 500 > configs/c.1/MaxPower
-echo 0xa0 > configs/c.1/bmAttributes
+echo 0x80 > configs/c.1/bmAttributes
 
 # HID Function
 mkdir -p functions/hid.usb0
 echo 0 > functions/hid.usb0/protocol
 echo 0 > functions/hid.usb0/subclass
 echo 8 > functions/hid.usb0/report_length
-# Report Descriptor (Standard Gamepad - 8 bytes)
-# Usage Page (Generic Desktop), Usage (Gamepad)
-# Bytes 0-1: Buttons (16 bits)
-# Byte 2: Hat (0-7, 8=Center)
-# Byte 3: LX
-# Byte 4: LY
-# Byte 5: RX
-# Byte 6: RY
-# Byte 7: Venom/Extra
-# Report Descriptor (Match NintendoSwitchControlLibrary)
-# Bytes 0-1: Buttons
-# Byte 2: Hat
-# Bytes 3-6: Sticks
-# Byte 7: Vendor
-# + Output Report (8 bytes)
-echo -ne \\x05\\x01\\x09\\x05\\xa1\\x01\\x15\\x00\\x25\\x01\\x35\\x00\\x45\\x01\\x75\\x01\\x95\\x10\\x05\\x09\\x19\\x01\\x29\\x10\\x81\\x02\\x05\\x01\\x25\\x07\\x46\\x3b\\x01\\x75\\x04\\x95\\x01\\x65\\x14\\x09\\x39\\x81\\x42\\x65\\x00\\x95\\x01\\x81\\x01\\x26\\xff\\x00\\x46\\xff\\x00\\x09\\x30\\x09\\x31\\x09\\x32\\x09\\x35\\x75\\x08\\x95\\x04\\x81\\x02\\x06\\x00\\xff\\x09\\x20\\x95\\x01\\x81\\x02\\x0a\\x21\\x26\\x95\\x08\\x91\\x02\\xc0 > functions/hid.usb0/report_desc
+# Report Descriptor (Pokken Controller - 8 bytes)
+# Usage Page (Desktop), Usage (Joystick)
+# Collection (Application)
+#   Report ID (none)
+#   Usage Page (Button), Usage Min (1), Usage Max (14)
+#   Logical Min (0), Logical Max (1)
+#   Report Size (1), Report Count (14)
+#   Input (Data, Var, Abs)
+#   Report Size (1), Report Count (2) -> Padding
+#   Input (Cnst, Var, Abs)
+#   Usage Page (Desktop), Usage (Hat Switch)
+#   Logical Min (0), Logical Max (7), Physical Min (0), Physical Max (315)
+#   Report Size (4), Report Count (1), Unit (Deg)
+#   Input (Data, Var, Abs, Null)
+#   Usage (X), Usage (Y), Usage (Z), Usage (Rz) -> LX, LY, RX, RY
+#   Logical Min (0), Logical Max (255)
+#   Report Size (8), Report Count (4)
+#   Input (Data, Var, Abs)
+#   Report Size (8), Report Count (1) -> Vendor/Padding
+#   Input (Cnst, Var, Abs)
+# End Collection
+python3 -c 'import sys; sys.stdout.buffer.write(b"\x05\x01\x09\x04\xa1\x01\x05\x09\x19\x01\x29\x0e\x15\x00\x25\x01\x75\x01\x95\x0e\x81\x02\x75\x01\x95\x02\x81\x01\x05\x01\x09\x39\x15\x00\x25\x07\x35\x00\x46\x3b\x01\x65\x14\x75\x04\x95\x01\x81\x42\x05\x01\x09\x30\x09\x31\x09\x32\x09\x35\x15\x00\x26\xff\x00\x75\x08\x95\x04\x81\x02\x75\x08\x95\x01\x81\x01\xc0")' > functions/hid.usb0/report_desc
 
 # Link Function
 ln -s functions/hid.usb0 configs/c.1/

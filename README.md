@@ -1,6 +1,12 @@
-# Raspberry Pi Zero 2 W - DS4 to Switch Bridge
+# Raspberry Pi Zero 2 W - DS4 to Switch Bridge (Pro Controller Emulator)
 
-DualShock 4 コントローラーを Nintendo Switch Proコントローラーとして認識させるUSBガジェットブリッジです。
+DualShock 4 コントローラーを **純正 Nintendo Switch Proコントローラー** として完全認識させるUSBガジェットブリッジです。
+SPI/UARTハンドシェイクを実装しているため、Switchからは正規のコントローラーとして認識されます。
+
+## 特徴
+- **純正Proコン互換**: ハンドシェイク（認証ごっこ）に対応し、Switchに「Pro Controller」として認識されます。
+- **低遅延**: 60Hz以上のポーリングレートを維持し、入力遅延を最小限に抑えています。
+- **自動再接続**: コントローラーの接続が切れても自動で再スキャンします。
 
 ## 必要要件
 - Raspberry Pi Zero 2 W (または OTG対応のラズパイ)
@@ -39,14 +45,14 @@ trust <MAC address>
 ```bash
 sudo python3 bridge_controller.py
 ```
-"Waiting for DualShock 4..." と表示されたら待機状態です。
+"Waiting for DS4..." と表示されたら待機状態です。
 
 ### 2. コントローラー接続
 DS4のPSボタンを押して接続します。"Found DS4: ..." と表示されます。
 
 ### 3. Switch接続
 Raspberry Pi の USBポート（PWRではない方）と Switch のドックをUSBケーブルで接続します。
-Switchの「コントローラーの持ちかた/順番を変える」画面を開くとスムーズに認識されます。
+Switchの「コントローラーの持ちかた/順番を変える」画面を開くと、数秒で認識されます。
 
 ## ボタン対応表
 | DS4 | Switch |
@@ -60,7 +66,13 @@ Switchの「コントローラーの持ちかた/順番を変える」画面を�
 | SHARE | - (Minus) |
 | OPTIONS | + (Plus) |
 | PS | HOME |
-| Touchpad Click | - (未割り当て) |
+| L3/R3 | LStick/RStick Click |
+
+## クレジット & 参考
+本プロジェクトは以下の偉大な先人たちの成果を参考に実装されています：
+- [mizuyoukanao/NXIC](https://github.com/mizuyoukanao/NXIC)
+- [mzyy94: スマホでNintendo Switchを操作する](https://www.mzyy94.com/blog/2020/03/20/nintendo-switch-pro-controller-usb-gadget/)
+- [Bokuchin: マウスを任天堂スイッチのプロコンのジャイロに連動させる](https://qiita.com/Bokuchin/items/7fee2c6a04c97dde29b4)
 
 ## トラブルシューティング
 - **"gadget ... not found"**: `setup_gadget.sh` を実行し忘れています。
